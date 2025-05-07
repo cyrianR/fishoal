@@ -1,0 +1,16 @@
+from abc import ABC
+import numpy as np
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from behaviors import Behavior
+
+class Fish:
+    def __init__(self, position: np.ndarray, velocity: np.ndarray, color: str, behavior: "Behavior"):
+        self.behavior = behavior
+        self.position = np.array(position, dtype=float)
+        self.velocity = np.array(velocity, dtype=float)
+        self.color = color
+    
+    def update_state(self):
+        self.behavior.behave(self)

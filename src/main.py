@@ -2,22 +2,32 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 
-from utils import *
+from aquarium import RandomPositionsAquarium2D
+from behaviors import StraightToroidalBehavior
+from behaviors import StraightReboundBehavior
+from fishes import Fish
 
 
-## CONSTANTS
-dt_spe = 10
-dt_aff = 100
-width = 1000
-height = 1000
-nb_fish = 10
-fishes = np.array([Fish(width, height) for _ in range(nb_fish)])
-print(fishes[0].position)
+## Simulation parameters
+frame_delay = 10            # delay between frames in ms
+dt_simu = 2                 # time step of simulation in ms
+width = 1000                # width of aquarium
+height = 1000               # height of aquarium 
+nb_fish = 10                # number of fishes in simulation
+fish_color = "orange"       # color of fishes  
 
+
+## Simulation setup
+# Create aquarium with fishes
+behavior = StraightReboundBehavior(None)
+aquarium = RandomPositionsAquarium2D(width, height, nb_fish, fish_color, behavior, dt_simu)
+behavior.set_aquarium(aquarium)
+
+# Launch simulation
 fig, ax = plt.subplots()
-xs = [fish.position[0] for fish in fishes]
-ys = [fish.position[1] for fish in fishes]
-points, = ax.plot(xs, ys, 'o')
+xs = [fish.position[0] for fish in aquarium.fishes]
+ys = [fish.position[1] for fish in aquarium.fishes]
+points, = ax.plot(xs, ys, 'o', color=fish_color)
 ax.set_xlim(0, width)
 ax.set_ylim(0, height)
 
@@ -29,20 +39,10 @@ def update(data):
 
 def generate_points():
     while True:
-        for fish in fishes:
-            fish.position += fish.speed * dt_spe
-            if fish.position[0] > width:
-                fish.position[0] = fish.position[0] % width
-            elif fish.position[0] <= 0:
-                fish.position[0] = (-fish.position[0]) % width
-            if fish.position[1] > height:
-                fish.position[1] = fish.position[1] % height
-            elif fish.position[1] <= 0:
-                fish.position[1] = (-fish.position[1] % height)
-        
-        xs = [fish.position[0] for fish in fishes]
-        ys = [fish.position[1] for fish in fishes]
+        aquarium.update_all()
+        xs = [fish.position[0] for fish in aquarium.fishes]
+        ys = [fish.position[1] for fish in aquarium.fishes]
         yield (ys, xs)
 
-ani = animation.FuncAnimation(fig, update, generate_points, interval=dt_aff)
+ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay)
 plt.show()
