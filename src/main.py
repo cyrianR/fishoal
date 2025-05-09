@@ -16,7 +16,7 @@ height = 1000                               # height of aquarium
 nb_fish = 10                                # number of fishes in simulation
 fish_colors = np.full((nb_fish,),"orange")  # color of fishes  
 
-print(fish_colors)
+
 ## Simulation setup
 # Create aquarium with fishes
 behavior = StraightReboundBehavior(None)
@@ -45,5 +45,5 @@ def generate_points():
         fish_colors = [fish.color for fish in aquarium.fishes]
         yield (ys, xs, fish_colors)
 
-ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay)
+ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False)
 plt.show()
