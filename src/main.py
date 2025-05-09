@@ -35,6 +35,7 @@ def update(data):
     ys, xs = data
     points.set_ydata(ys)
     points.set_xdata(xs)
+    points.set_color(fish_color)
     return points
 
 def generate_points():
