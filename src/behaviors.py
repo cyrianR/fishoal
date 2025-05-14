@@ -7,6 +7,8 @@ if TYPE_CHECKING:
     from aquarium import Aquarium
     from fishes import Fish
 
+
+
 class Behavior(ABC):
     def __init__(self, aquarium: "Aquarium") -> None:
         self.aquarium = aquarium
@@ -49,6 +51,52 @@ class StraightReboundBehavior(Behavior):
                 fish.velocity[i] *= -1
 
 
+
+class StraightVariableReboundBehavior(Behavior):
+    def __init__(self, aquarium: "Aquarium", max_angle_rand_variation: float, delay_rand_variation: int) -> None:
+        super().__init__(aquarium)
+        self.max_angle_rand_variation = max_angle_rand_variation
+        self.delay_rand_variation = delay_rand_variation
+        self.iteration = 0
+        self.base_velocity = None
+
+    def behave(self, fish: "Fish") -> None:
+        self.iteration += 1
+
+        # Initial base velocity
+        if self.iteration == 1:
+            self.base_velocity = fish.velocity.copy()
+            self.base_velocity /= np.linalg.norm(self.base_velocity)
+
+        # Fish has constant velocity norm and moves straight with a random small variation of angle each delay
+        if (self.iteration % self.delay_rand_variation == 0):
+            # Case 2D
+            if len(fish.velocity) == 2:
+                # Randomly add a small angle to the fish's base velocity
+                angle = np.random.rand() * 2 * self.max_angle_rand_variation - self.max_angle_rand_variation
+                rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)],
+                                             [np.sin(angle), np.cos(angle)]])
+                fish.velocity = rotation_matrix @ self.base_velocity
+                fish.velocity /= np.linalg.norm(fish.velocity)
+            # Case 3D
+            elif len(fish.velocity) == 3:
+                ...
+        fish.position += fish.velocity * self.aquarium.dt
+
+        # Rebound boundaries : if the fish goes out of bounds, it bounces back
+        for i in range(len(fish.position)):
+            if fish.position[i] < 0:
+                fish.position[i] = -fish.position[i]
+                fish.velocity[i] *= -1
+                self.base_velocity[i] *= -1
+            elif fish.position[i] > self.aquarium.size[i]:
+                fish.position[i] = self.aquarium.size[i] - (fish.position[i] - self.aquarium.size[i])
+                fish.velocity[i] *= -1
+                self.base_velocity[i] *= -1
+        
+
+
+
 class RandomBehavior(Behavior):
     def __init__(self, aquarium: "Aquarium", direction_change_prob: float = 0.1) -> None:
         super().__init__(aquarium)
@@ -73,19 +121,35 @@ class RandomBehavior(Behavior):
                 fish.velocity[i] *= -1 
 
 
+
 class TrafalgarBehavior(Behavior):
-    def __init__(self, aquarium: "Aquarium", fish_leader: "Fish", contamination_dist: float, random_variation: float, delay_random_variation: int) -> None:
+    def __init__(self,
+            aquarium: "Aquarium",
+            fish_leader: "Fish",
+            contamination_dist: float,
+            max_angle_rand_variation: float,
+            delay_rand_variation: int,
+            delay_change_behavior: int) -> None:
         super().__init__(aquarium)
         self.contaminated = False
         self.fish_leader = fish_leader
         self.contamination_dist = contamination_dist
-        self.random_variation = random_variation
-        self.delay_random_variation = delay_random_variation
+        self.max_angle_rand_variation = max_angle_rand_variation
+        self.delay_rand_variation = delay_rand_variation
+        self.delay_change_behavior = delay_change_behavior
         self.iteration = 0
+        self.base_velocity = fish_leader.velocity.copy()
 
     def behave(self, fish: "Fish") -> None:
         self.iteration += 1
-        if not self.contaminated:
+
+        # Initial base velocity
+        if self.iteration == 1:
+            self.base_velocity = fish.velocity.copy()
+            self.base_velocity /= np.linalg.norm(self.base_velocity)
+
+        # Contamination
+        if not self.contaminated and self.iteration % self.delay_change_behavior == 0:
             if fish.distance(self.fish_leader) < self.contamination_dist:
                 # Fish is now contaminated because it is close to the leader
                 self.contaminated = True
@@ -96,27 +160,41 @@ class TrafalgarBehavior(Behavior):
                         # Check if the fish is close to any contaminated fish
                         d = fish.distance(f)
                         if (d < self.contamination_dist):
+                            # Fish is now contaminated because it is close to a contaminated fish
                             self.contaminated = True
                             fish.color = "green"
                             break
             if self.contaminated:
                 # Fish now follows the leader
-                fish.velocity = self.fish_leader.velocity.copy()
-        # Fish has constant velocity and moves straight
-        if (self.iteration % self.delay_random_variation == 0):
-            fish.velocity += np.random.rand(2) * self.random_variation - self.random_variation / 2
-            fish.velocity /= np.linalg.norm(fish.velocity)
-        fish.position += fish.velocity * self.aquarium.dt
+                fish.velocity = self.fish_leader.behavior.base_velocity.copy()
+                self.base_velocity = fish.velocity.copy()
 
+        # Fish has constant velocity norm and moves straight with a random small variation of angle each delay
+        if (self.iteration % self.delay_rand_variation == 0):
+            # Case 2D
+            if len(fish.velocity) == 2:
+                # Randomly add a small angle to the fish's base velocity
+                angle = np.random.rand() * 2 * self.max_angle_rand_variation - self.max_angle_rand_variation
+                rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)],
+                                             [np.sin(angle), np.cos(angle)]])
+                fish.velocity = rotation_matrix @ self.base_velocity
+                fish.velocity /= np.linalg.norm(fish.velocity)
+            # Case 3D
+            elif len(fish.velocity) == 3:
+                ...
+        fish.position += fish.velocity * self.aquarium.dt
 
         # Rebound boundaries : if the fish goes out of bounds, it bounces back
         for i in range(len(fish.position)):
             if fish.position[i] < 0:
                 fish.position[i] = -fish.position[i]
                 fish.velocity[i] *= -1
+                self.base_velocity[i] *= -1
             elif fish.position[i] > self.aquarium.size[i]:
                 fish.position[i] = self.aquarium.size[i] - (fish.position[i] - self.aquarium.size[i])
                 fish.velocity[i] *= -1
+                self.base_velocity[i] *= -1
+
 
 
 class AokiBehavior(Behavior):
