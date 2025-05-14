@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import random
 import numpy as np
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, override, Optional
 
 if TYPE_CHECKING:
     from aquarium import Aquarium
@@ -129,16 +129,20 @@ class TrafalgarBehavior(Behavior):
             contamination_dist: float,
             max_angle_rand_variation: float,
             delay_rand_variation: int,
-            delay_change_behavior: int) -> None:
+            delay_contamination: int,
+            contaminated_color: str,
+            contaminated_img: Optional[np.ndarray]) -> None:
         super().__init__(aquarium)
         self.contaminated = False
         self.fish_leader = fish_leader
         self.contamination_dist = contamination_dist
         self.max_angle_rand_variation = max_angle_rand_variation
         self.delay_rand_variation = delay_rand_variation
-        self.delay_change_behavior = delay_change_behavior
+        self.delay_contamination = delay_contamination
         self.iteration = 0
         self.base_velocity = fish_leader.velocity.copy()
+        self.contaminated_color = contaminated_color
+        self.contaminated_img = contaminated_img
 
     def behave(self, fish: "Fish") -> None:
         self.iteration += 1
@@ -149,11 +153,12 @@ class TrafalgarBehavior(Behavior):
             self.base_velocity /= np.linalg.norm(self.base_velocity)
 
         # Contamination
-        if not self.contaminated and self.iteration % self.delay_change_behavior == 0:
+        if not self.contaminated and self.iteration % self.delay_contamination == 0:
             if fish.distance(self.fish_leader) < self.contamination_dist:
                 # Fish is now contaminated because it is close to the leader
                 self.contaminated = True
-                fish.color = "green"
+                fish.color = self.contaminated_color
+                fish.image = self.contaminated_img
             else:
                 for f in self.aquarium.fishes:
                     if isinstance(f.behavior, TrafalgarBehavior) and f.behavior.contaminated and f != self.fish_leader:
@@ -162,7 +167,8 @@ class TrafalgarBehavior(Behavior):
                         if (d < self.contamination_dist):
                             # Fish is now contaminated because it is close to a contaminated fish
                             self.contaminated = True
-                            fish.color = "green"
+                            fish.color = self.contaminated_color
+                            fish.image = self.contaminated_img
                             break
             if self.contaminated:
                 # Fish now follows the leader

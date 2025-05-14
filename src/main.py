@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import numpy as np
 
 from aquarium import RandomPositionsAquarium2D, Aquarium2D, AquariumKDTree2D
@@ -19,6 +20,9 @@ width = 1000                                # width of aquarium
 height = 1000                               # height of aquarium 
 nb_fish = 100                                # number of fishes in simulation
 fish_color = "orange"                       # color of fishes  
+steve_orange_img = plt.imread("./ressources/steve_orange.png")
+steve_red_img = plt.imread("./ressources/steve_red.png")
+steve_green_img = plt.imread("./ressources/steve_green.png")
 
 
 ## SIMULATION SETUP
@@ -39,7 +43,7 @@ leader_behavior = StraightVariableReboundBehavior(
 velocity = (np.random.rand(2) * 2 - 1)
 velocity /= np.linalg.norm(velocity)
 position = np.random.rand(2) * [width, height]
-leader_fish = Fish(position, velocity, "red", leader_behavior)
+leader_fish = Fish(position, velocity, "red", leader_behavior, steve_red_img)
 aquarium.put_fish(0, leader_fish)
 
 for i in range(1, nb_fish):
@@ -52,8 +56,10 @@ for i in range(1, nb_fish):
         contamination_dist=30,
         max_angle_rand_variation=np.pi/12,
         delay_rand_variation=50,
-        delay_change_behavior=5)
-    fish = Fish(position, velocity, fish_color, trafalgar_behavior)
+        delay_contamination=5,
+        contaminated_color="green",
+        contaminated_img=steve_green_img)
+    fish = Fish(position, velocity, fish_color, trafalgar_behavior, steve_orange_img)
     aquarium.put_fish(i, fish)
 
 # Partie 3
@@ -70,6 +76,8 @@ for i in range(0, nb_fish):
 
 
 ## LAUNCH SIMULATION
+
+# 2D visualization with points
 fig, ax = plt.subplots()
 xs = [fish.position[0] for fish in aquarium.fishes]
 ys = [fish.position[1] for fish in aquarium.fishes]
@@ -93,3 +101,35 @@ def generate_points():
 
 ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False)
 plt.show()
+
+
+# 2D visualization with images for partie 2
+""" fig, ax = plt.subplots()
+ax.set_xlim(0, width)
+ax.set_ylim(0, height)
+
+fish_boxes = []
+for fish in aquarium.fishes:
+    image_box = OffsetImage(fish.image, zoom=0.05)
+    ab = AnnotationBbox(image_box, (fish.position[0], fish.position[1]), frameon=False)
+    ax.add_artist(ab)
+    fish_boxes.append(ab)
+
+def update(data):
+    xs, ys, fish_images = data
+    for i, ab in enumerate(fish_boxes):
+        ab.offsetbox = OffsetImage(fish_images[i], zoom=0.05)
+        ab.xy = (xs[i], ys[i])
+        ab.xybox = (xs[i], ys[i])
+    return fish_boxes
+
+def generate_points():
+    while True:
+        aquarium.update_all()
+        xs = [fish.position[0] for fish in aquarium.fishes]
+        ys = [fish.position[1] for fish in aquarium.fishes]
+        fish_images = [fish.image for fish in aquarium.fishes]
+        yield (xs, ys, fish_images)
+
+ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False, blit=False)
+plt.show() """
