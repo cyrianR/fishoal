@@ -1,6 +1,8 @@
 from abc import ABC
+from turtle import up
 import numpy as np
-from typing import TYPE_CHECKING
+import scipy as sp
+from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
     from behaviors import Behavior
@@ -27,18 +29,30 @@ class Aquarium2D(Aquarium):
         self.fishes[ind] = fish
 
 
+class AquariumKDTree2D(Aquarium2D):
+    def __init__(self, width: int, height: int, n_fishes: int, dt: float):
+        super().__init__(width, height, n_fishes, dt)
+        self.kdtree = None
+
+    @override
+    def update_all(self):
+        super().update_all()
+        # Update the KDTree with the new positions of the fishes
+        self.kdtree = self.build_kdtree()
+
+
 
 class RandomPositionsAquarium2D(Aquarium2D):
-    def __init__(self, width: int, height: int, n_fishes: int, colors: np.ndarray, behavior: "Behavior", dt: float):
+    def __init__(self, width: int, height: int, n_fishes: int, color: str, behavior: "Behavior", dt: float):
         super().__init__(width, height, n_fishes, dt)
-        self.populate_fishes(n_fishes, colors, behavior, width, height)
+        self.populate_fishes(n_fishes, color, behavior, width, height)
 
-    def populate_fishes(self, n_fishes: int, colors: np.ndarray, behavior: "Behavior", width: int, height: int):
+    def populate_fishes(self, n_fishes: int, color: str, behavior: "Behavior", width: int, height: int):
         for i in range(n_fishes):
             position = np.random.rand(2) * [width, height]
             velocity = (np.random.rand(2) * 2 - 1)
             velocity /= np.linalg.norm(velocity)
-            self.fishes[i] = Fish(position, velocity, colors[i], behavior)
+            self.fishes[i] = Fish(position, velocity, color, behavior)
 
     def change_fish_colors(self, new_color: str):
         for fish in self.fishes:

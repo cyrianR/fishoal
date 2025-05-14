@@ -14,3 +14,6 @@ class Fish:
     
     def update_state(self):
         self.behavior.behave(self)
+
+    def distance(self, other: "Fish") -> float:
+        return np.linalg.norm(self.position - other.position)
