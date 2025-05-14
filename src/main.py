@@ -13,13 +13,13 @@ frame_delay = 10            # delay between frames in ms
 dt_simu = 2                 # time step of simulation in ms
 width = 1000                # width of aquarium
 height = 1000               # height of aquarium 
-nb_fish = 10                # number of fishes in simulation
+nb_fish = 100                # number of fishes in simulation
 fish_color = "orange"       # color of fishes  
 
 
 ## Simulation setup
 # Create aquarium with fishes
-behavior = StraightReboundBehavior(None)
+behavior = StraightToroidalBehavior(None)
 aquarium = RandomPositionsAquarium2D(width, height, nb_fish, fish_color, behavior, dt_simu)
 behavior.set_aquarium(aquarium)
 
