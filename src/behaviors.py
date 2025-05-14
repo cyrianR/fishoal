@@ -26,9 +26,9 @@ class StraightToroidalBehavior(Behavior):
         # Toroidal boundaries : if the fish goes out of bounds, it reappears on the other side
         for i in range(len(fish.position)):
             if fish.position[i] < 0:
-                fish.position[i] += self.aquarium.size[i]
+                fish.position[i] = fish.position[i] % self.aquarium.size[i]
             elif fish.position[i] > self.aquarium.size[i]:
-                fish.position[i] -= self.aquarium.size[i]
+                fish.position[i] = fish.position[i] % self.aquarium.size[i]
 
 class StraightReboundBehavior(Behavior):
     def behave(self, fish: "Fish") -> None:
@@ -38,8 +38,8 @@ class StraightReboundBehavior(Behavior):
         # Rebound boundaries : if the fish goes out of bounds, it bounces back
         for i in range(len(fish.position)):
             if fish.position[i] < 0:
-                fish.position[i] = 0
+                fish.position[i] = -fish.position[i]
                 fish.velocity[i] *= -1
             elif fish.position[i] > self.aquarium.size[i]:
-                fish.position[i] = self.aquarium.size[i]
+                fish.position[i] = self.aquarium.size[i] - (fish.position[i] - self.aquarium.size[i])
                 fish.velocity[i] *= -1

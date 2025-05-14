@@ -29,16 +29,16 @@ class Aquarium2D(Aquarium):
 
 
 class RandomPositionsAquarium2D(Aquarium2D):
-    def __init__(self, width: int, height: int, n_fishes: int, color: str, behavior: "Behavior", dt: float):
+    def __init__(self, width: int, height: int, n_fishes: int, colors: np.ndarray, behavior: "Behavior", dt: float):
         super().__init__(width, height, n_fishes, dt)
-        self.populate_fishes(n_fishes, color, behavior, width, height)
+        self.populate_fishes(n_fishes, colors, behavior, width, height)
 
-    def populate_fishes(self, n_fishes: int, color: str, behavior: "Behavior", width: int, height: int):
+    def populate_fishes(self, n_fishes: int, colors: np.ndarray, behavior: "Behavior", width: int, height: int):
         for i in range(n_fishes):
             position = np.random.rand(2) * [width, height]
             velocity = (np.random.rand(2) * 2 - 1)
             velocity /= np.linalg.norm(velocity)
-            self.fishes[i] = Fish(position, velocity, color, behavior)
+            self.fishes[i] = Fish(position, velocity, colors[i], behavior)
 
     def change_fish_colors(self, new_color: str):
         for fish in self.fishes:
