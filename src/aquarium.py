@@ -36,9 +36,8 @@ class AquariumKDTree2D(Aquarium2D):
 
     @override
     def update_all(self):
+        self.kdtree = sp.spatial.KDTree([fish.position for fish in self.fishes])
         super().update_all()
-        # Update the KDTree with the new positions of the fishes
-        self.kdtree = self.build_kdtree()
 
 
 

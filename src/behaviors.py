@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import random
 import numpy as np
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
     from aquarium import Aquarium
@@ -117,4 +117,43 @@ class TrafalgarBehavior(Behavior):
             elif fish.position[i] > self.aquarium.size[i]:
                 fish.position[i] = self.aquarium.size[i] - (fish.position[i] - self.aquarium.size[i])
                 fish.velocity[i] *= -1
+
+
+class AokiBehavior(Behavior):
+    def __init__(self, aquarium: "Aquarium", r_repulsion: float, r_alignement: float, r_attraction : float, k_repulsion: float, k_attraction: float) -> None:
+        super().__init__(aquarium)
+        self.r_repulsion = r_repulsion
+        self.r_alignement = r_alignement
+        self.r_attraction = r_attraction
+        self.k_repulsion = k_repulsion
+        self.k_attraction = k_attraction
         
+
+    def behave(self, fish: "Fish") -> None:
+        v_repulsion = self.aquarium.kdtree.query_ball_point(fish.position, self.r_repulsion)
+
+        v_alignement = self.aquarium.kdtree.query_ball_point(fish.position, self.r_alignement)
+        v_alignement = [v for v in v_alignement if v not in v_repulsion]
+
+        v_attraction = self.aquarium.kdtree.query_ball_point(fish.position, self.r_attraction)
+        v_attraction = [v for v in v_attraction if v not in v_repulsion and v not in v_alignement]
+
+        f_repulsion = [self.aquarium.fishes[i] for i in v_repulsion if self.aquarium.fishes[i] != fish]
+        f_alignement = [self.aquarium.fishes[i] for i in v_alignement]
+        f_attraction = [self.aquarium.fishes[i] for i in v_attraction]
+
+        # Repulsion
+        F_repulsion = -self.k_repulsion * np.sum([(fish.position - f.position)/np.linalg.norm((fish.position - f.position)) for f in f_repulsion], axis=0) if len(f_repulsion) > 0 else 0
+
+        # Alignement
+        F_alignement = 1 / len(f_alignement) * np.sum([f.velocity for f in f_alignement], axis=0) if len(f_alignement) > 0 else 0
+
+        # Attraction
+        F_attraction = self.k_attraction * np.sum([(f.position - fish.position)/np.linalg.norm((f.position - fish.position)) for f in f_attraction], axis=0) if len(f_attraction) > 0 else 0 
+
+        # Update velocity
+        fish.velocity += F_repulsion + F_alignement + F_attraction
+        fish.velocity /= np.linalg.norm(fish.velocity)
+
+        # Fish has constant velocity and moves straight
+        fish.position += fish.velocity * self.aquarium.dt
