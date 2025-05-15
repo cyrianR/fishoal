@@ -105,7 +105,7 @@ class RandomBehavior(Behavior):
     def behave(self, fish: "Fish") -> None:
         # Randomly change direction
         if np.random.rand() < self.direction_change_prob:  # direction_change_prob chance to change direction
-            fish.velocity = (np.random.rand(2) * 2 - 1)
+            fish.velocity = (np.random.rand(len(fish.velocity)) * 2 - 1)
             fish.velocity /= np.linalg.norm(fish.velocity)
 
         # Fish has constant velocity and moves straight 

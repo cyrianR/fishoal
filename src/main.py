@@ -3,7 +3,7 @@ import matplotlib.animation as animation
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import numpy as np
 
-from aquarium import RandomPositionsAquarium2D, Aquarium2D, AquariumKDTree2D
+from aquarium import Aquarium2D, Aquarium3D, AquariumKDTree2D
 from behaviors import StraightToroidalBehavior
 from behaviors import StraightReboundBehavior
 from behaviors import StraightVariableReboundBehavior
@@ -18,6 +18,7 @@ frame_delay = 10                            # delay between frames in ms
 dt_simu = 2                                 # time step of simulation in ms
 width = 1000                                # width of aquarium
 height = 1000                               # height of aquarium 
+depth = 1000                                 # depth of aquarium
 nb_fish = 100                                # number of fishes in simulation
 fish_color = "orange"                       # color of fishes  
 steve_orange_img = plt.imread("./ressources/steve_orange.png")
@@ -34,7 +35,7 @@ steve_green_img = plt.imread("./ressources/steve_green.png")
 #behavior.set_aquarium(aquarium)
 
 # Partie 2
-aquarium = Aquarium2D(width, height, nb_fish, dt_simu)
+""" aquarium = Aquarium2D(width, height, nb_fish, dt_simu)
 
 leader_behavior = StraightVariableReboundBehavior(
     aquarium,
@@ -60,7 +61,7 @@ for i in range(1, nb_fish):
         contaminated_color="green",
         contaminated_img=steve_green_img)
     fish = Fish(position, velocity, fish_color, trafalgar_behavior, steve_orange_img)
-    aquarium.put_fish(i, fish)
+    aquarium.put_fish(i, fish) """
 
 # Partie 3
 """ aquarium = AquariumKDTree2D(width, height, nb_fish, dt_simu)
@@ -78,7 +79,7 @@ for i in range(0, nb_fish):
 ## LAUNCH SIMULATION
 
 # 2D visualization with points
-fig, ax = plt.subplots()
+""" fig, ax = plt.subplots()
 xs = [fish.position[0] for fish in aquarium.fishes]
 ys = [fish.position[1] for fish in aquarium.fishes]
 points = ax.scatter(xs, ys, marker='o', c=fish_color)
@@ -100,7 +101,7 @@ def generate_points():
         yield (ys, xs, fish_colors)
 
 ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False)
-plt.show()
+plt.show() """
 
 
 # 2D visualization with images for partie 2
@@ -133,3 +134,44 @@ def generate_points():
 
 ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False, blit=False)
 plt.show() """
+
+# Create the fishes in a 3D aquarium 
+aquarium = Aquarium3D(width, height, depth, nb_fish, dt_simu)
+for i in range(0, nb_fish):
+    position = np.random.rand(3) * [width, height, depth]
+    velocity = (np.random.rand(3) * 2 - 1)
+    velocity /= np.linalg.norm(velocity)
+    behavior = StraightReboundBehavior(aquarium)
+    fish = Fish(position, velocity, fish_color, behavior)
+    aquarium.put_fish(i, fish)
+
+# Launch the simulation in 3D
+xs = [fish.position[0] for fish in aquarium.fishes]
+ys = [fish.position[1] for fish in aquarium.fishes]
+zs = [fish.position[2] for fish in aquarium.fishes]
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.set_xlim(0, width)
+ax.set_ylim(0, height)
+ax.set_zlim(0, depth)
+
+points = ax.scatter(xs, ys, zs, marker='o', c=fish_color, s=50)
+
+def update(data):
+    ys, xs, zs, fish_colors = data
+    points._offsets3d = (xs, ys, zs)
+    points.set_color(fish_colors)
+    return points
+
+def generate_points():
+    while True:
+        aquarium.update_all()
+        xs = [fish.position[0] for fish in aquarium.fishes]
+        ys = [fish.position[1] for fish in aquarium.fishes]
+        zs = [fish.position[2] for fish in aquarium.fishes]
+        fish_colors = [fish.color for fish in aquarium.fishes]
+        yield (ys, xs, zs, fish_colors)
+
+anim = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False)
+plt.show()

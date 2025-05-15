@@ -29,6 +29,16 @@ class Aquarium2D(Aquarium):
         self.fishes[ind] = fish
 
 
+
+class Aquarium3D(Aquarium):
+    def __init__(self, width: int, height: int, depth: int, n_fishes: int, dt: float):
+        super().__init__(np.array([width, height, depth]), n_fishes, dt)
+
+    def put_fish(self, ind: int, fish: "Fish"):
+        self.fishes[ind] = fish
+
+
+
 class AquariumKDTree2D(Aquarium2D):
     def __init__(self, width: int, height: int, n_fishes: int, dt: float):
         super().__init__(width, height, n_fishes, dt)
