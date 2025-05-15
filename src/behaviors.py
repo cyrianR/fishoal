@@ -80,7 +80,18 @@ class StraightVariableReboundBehavior(Behavior):
                 fish.velocity /= np.linalg.norm(fish.velocity)
             # Case 3D
             elif len(fish.velocity) == 3:
-                ...
+                # Randomly add a small angle to the fish's base velocity
+                angle = np.random.rand() * 2 * self.max_angle_rand_variation - self.max_angle_rand_variation
+                circular_angle = np.random.rand() * 2 * np.pi
+                rotation_matrix = np.array([[1, 0, 0],
+                                            [0, np.cos(angle), -np.sin(angle)],
+                                            [0, np.sin(angle), np.cos(angle)]])
+                v_inter = self.base_velocity.copy()
+                v_inter = v_inter/np.linalg.norm(v_inter)
+                # Rotate velocity to add a small angle
+                v = rotation_matrix @ v_inter
+                # Rodrigues' rotation formula to rotate around initial fish velocity
+                fish.velocity = v*np.cos(circular_angle) + np.cross(v_inter,v)*np.sin(circular_angle) + v_inter*(np.transpose(v_inter)@v)*(1-np.cos(circular_angle))
         fish.position += fish.velocity * self.aquarium.dt
 
         # Rebound boundaries : if the fish goes out of bounds, it bounces back
@@ -187,7 +198,18 @@ class TrafalgarBehavior(Behavior):
                 fish.velocity /= np.linalg.norm(fish.velocity)
             # Case 3D
             elif len(fish.velocity) == 3:
-                ...
+                # Randomly add a small angle to the fish's base velocity
+                angle = np.random.rand() * 2 * self.max_angle_rand_variation - self.max_angle_rand_variation
+                circular_angle = np.random.rand() * 2 * np.pi
+                rotation_matrix = np.array([[1, 0, 0],
+                                            [0, np.cos(angle), -np.sin(angle)],
+                                            [0, np.sin(angle), np.cos(angle)]])
+                v_inter = self.base_velocity.copy()
+                v_inter = v_inter/np.linalg.norm(v_inter)
+                # Rotate velocity to add a small angle
+                v = rotation_matrix @ v_inter
+                # Rodrigues' rotation formula to rotate around initial fish velocity
+                fish.velocity = v*np.cos(circular_angle) + np.cross(v_inter,v)*np.sin(circular_angle) + v_inter*(np.transpose(v_inter)@v)*(1-np.cos(circular_angle))
         fish.position += fish.velocity * self.aquarium.dt
 
         # Rebound boundaries : if the fish goes out of bounds, it bounces back
