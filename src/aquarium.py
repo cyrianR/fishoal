@@ -48,3 +48,15 @@ class AquariumKDTree2D(Aquarium2D):
     def update_all(self):
         self.kdtree = sp.spatial.KDTree([fish.position for fish in self.fishes])
         super().update_all()
+
+
+
+class AquariumKDTree3D(Aquarium3D):
+    def __init__(self, width: int, height: int, depth: int, n_fishes: int, dt: float):
+        super().__init__(width, height, depth, n_fishes, dt)
+        self.kdtree = None
+
+    @override
+    def update_all(self):
+        self.kdtree = sp.spatial.KDTree([fish.position for fish in self.fishes])
+        super().update_all()

@@ -236,26 +236,28 @@ class AokiBehavior(Behavior):
         
 
     def behave(self, fish: "Fish") -> None:
-        v_repulsion = self.aquarium.kdtree.query_ball_point(fish.position, self.r_repulsion)
+        # Get indexes of the fishes in the different neighborhoods
+        v_repulsion = self.aquarium.kdtree.query_ball_point(fish.position, self.r_repulsion, p=2)
 
-        v_alignement = self.aquarium.kdtree.query_ball_point(fish.position, self.r_alignement)
+        v_alignement = self.aquarium.kdtree.query_ball_point(fish.position, self.r_alignement, p=2)
         v_alignement = [v for v in v_alignement if v not in v_repulsion]
 
-        v_attraction = self.aquarium.kdtree.query_ball_point(fish.position, self.r_attraction)
+        v_attraction = self.aquarium.kdtree.query_ball_point(fish.position, self.r_attraction, p=2)
         v_attraction = [v for v in v_attraction if v not in v_repulsion and v not in v_alignement]
 
-        f_repulsion = [self.aquarium.fishes[i] for i in v_repulsion if self.aquarium.fishes[i] != fish]
-        f_alignement = [self.aquarium.fishes[i] for i in v_alignement]
-        f_attraction = [self.aquarium.fishes[i] for i in v_attraction]
+        # Get fishes in the different neighborhoods
+        fishes_repulsion = [self.aquarium.fishes[i] for i in v_repulsion if self.aquarium.fishes[i] != fish]
+        fishes_alignement = [self.aquarium.fishes[i] for i in v_alignement]
+        fishes_attraction = [self.aquarium.fishes[i] for i in v_attraction]
 
-        # Repulsion
-        F_repulsion = -self.k_repulsion * np.sum([(fish.position - f.position)/np.linalg.norm((fish.position - f.position)) for f in f_repulsion], axis=0) if len(f_repulsion) > 0 else 0
+        # Repulsion force
+        F_repulsion = -self.k_repulsion * np.sum([(f.position - fish.position)/np.linalg.norm((f.position - fish.position)) for f in fishes_repulsion], axis=0) if len(fishes_repulsion) > 0 else 0
 
-        # Alignement
-        F_alignement = 1 / len(f_alignement) * np.sum([f.velocity for f in f_alignement], axis=0) if len(f_alignement) > 0 else 0
+        # Alignement force
+        F_alignement = (1 / len(fishes_alignement)) * np.sum([f.velocity for f in fishes_alignement], axis=0) if len(fishes_alignement) > 0 else 0
 
-        # Attraction
-        F_attraction = self.k_attraction * np.sum([(f.position - fish.position)/np.linalg.norm((f.position - fish.position)) for f in f_attraction], axis=0) if len(f_attraction) > 0 else 0 
+        # Attraction force
+        F_attraction = self.k_attraction * np.sum([(f.position - fish.position)/np.linalg.norm((f.position - fish.position)) for f in fishes_attraction], axis=0) if len(fishes_attraction) > 0 else 0 
 
         # Update velocity
         fish.velocity += F_repulsion + F_alignement + F_attraction
@@ -263,3 +265,12 @@ class AokiBehavior(Behavior):
 
         # Fish has constant velocity and moves straight
         fish.position += fish.velocity * self.aquarium.dt
+
+        # Rebound boundaries : if the fish goes out of bounds, it bounces back
+        for i in range(len(fish.position)):
+            if fish.position[i] < 0:
+                fish.position[i] = -fish.position[i]
+                fish.velocity[i] *= -1
+            elif fish.position[i] > self.aquarium.size[i]:
+                fish.position[i] = self.aquarium.size[i] - (fish.position[i] - self.aquarium.size[i])
+                fish.velocity[i] *= -1 

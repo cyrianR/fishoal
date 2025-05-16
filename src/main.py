@@ -63,15 +63,22 @@ for i in range(1, nb_fish):
     fish = Fish(position, velocity, fish_color, trafalgar_behavior, steve_orange_img)
     aquarium.put_fish(i, fish) """
 
+r_repulsion = 25
+r_alignement = 30
+r_attraction = 40
+k_repulsion = 1
+k_attraction = 0.005
+
+
 # Partie 3
-""" aquarium = AquariumKDTree2D(width, height, nb_fish, dt_simu)
+aquarium = AquariumKDTree2D(width, height, nb_fish, dt_simu)
 for i in range(0, nb_fish):
     position = np.random.rand(2) * [width, height]
     velocity = (np.random.rand(2) * 2 - 1)
     velocity /= np.linalg.norm(velocity)
-    aoki_behavior = AokiBehavior(aquarium, 10, 20, 75, 5, 10)
+    aoki_behavior = AokiBehavior(aquarium, r_repulsion, r_alignement, r_attraction, k_repulsion, k_attraction)
     fish = Fish(position, velocity, fish_color, aoki_behavior)
-    aquarium.put_fish(i, fish) """
+    aquarium.put_fish(i, fish)
 
 
 
@@ -79,7 +86,7 @@ for i in range(0, nb_fish):
 ## LAUNCH SIMULATION
 
 # 2D visualization with points
-""" fig, ax = plt.subplots()
+fig, ax = plt.subplots()
 xs = [fish.position[0] for fish in aquarium.fishes]
 ys = [fish.position[1] for fish in aquarium.fishes]
 points = ax.scatter(xs, ys, marker='o', c=fish_color)
@@ -101,7 +108,7 @@ def generate_points():
         yield (ys, xs, fish_colors)
 
 ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False)
-plt.show() """
+plt.show()
 
 
 # 2D visualization with images for partie 2
@@ -136,7 +143,7 @@ ani = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay
 plt.show() """
 
 # Create the fishes in a 3D aquarium 
-aquarium = Aquarium3D(width, height, depth, nb_fish, dt_simu)
+""" aquarium = Aquarium3D(width, height, depth, nb_fish, dt_simu)
 for i in range(0, nb_fish):
     position = np.random.rand(3) * [width, height, depth]
     velocity = (np.random.rand(3) * 2 - 1)
@@ -174,4 +181,4 @@ def generate_points():
         yield (ys, xs, zs, fish_colors)
 
 anim = animation.FuncAnimation(fig, update, generate_points, interval=frame_delay, cache_frame_data=False)
-plt.show()
+plt.show() """
